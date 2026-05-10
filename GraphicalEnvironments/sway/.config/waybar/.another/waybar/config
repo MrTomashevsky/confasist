@@ -1,0 +1,78 @@
+{
+    "layer": "top",
+    "position": "top",
+    "height": 30,
+    "spacing": 4,
+    
+    "modules-left": ["sway/workspaces", "sway/mode"],
+    "modules-center": ["clock"],
+    "modules-right": ["cpu", "memory", "battery", "pulseaudio", "keyboard", "tray"],
+    
+    "sway/workspaces": {
+        "disable-scroll": true,
+        "all-outputs": true,
+        "format": "{name}"
+    },
+    
+    "sway/mode": {
+        "format": "<span style=\"italic\">{}</span>"
+    },
+    
+    "keyboard": {
+        "format": "{layout}",
+        "format-prefix": "⌨ ",
+        "on-click": "swaymsg input type:keyboard xkb_switch_layout next"
+    },
+    
+    "cpu": {
+        "format": "{usage}%",
+        "format-prefix": "🖥 ",
+        "interval": 5,
+        "tooltip": true
+    },
+    
+    "memory": {
+        "format": "{}%",
+        "format-prefix": "🧠 ",
+        "interval": 5,
+        "tooltip": true
+    },
+    
+    "battery": {
+        "format": "{capacity}% {icon}",
+        "format-icons": ["🔋", "🔌"],
+        "format-charging": "⚡{capacity}%",
+        "interval": 10,
+        "states": {
+            "warning": 30,
+            "critical": 15
+        }
+    },
+    
+    "pulseaudio": {
+        "format": "{volume}% {icon}",
+        "format-bluetooth": "{volume}% {icon}",
+        "format-muted": "🔇",
+        "format-icons": {
+            "headphone": "🎧",
+            "hands-free": "📱",
+            "headset": "🎧",
+            "phone": "📞",
+            "portable": "🎧",
+            "car": "🚗",
+            "default": ["🔈", "🔉", "🔊"]
+        },
+        "on-click": "pactl set-sink-mute @DEFAULT_SINK@ toggle",
+        "on-click-right": "pavucontrol"
+    },
+    
+    "clock": {
+        "format": "{:%Y-%m-%d %H:%M}",
+        "format-alt": "{:%A, %B %d, %Y}",
+        "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>"
+    },
+    
+    "tray": {
+        "spacing": 10
+    }
+}

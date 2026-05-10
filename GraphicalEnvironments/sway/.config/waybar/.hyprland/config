@@ -1,0 +1,159 @@
+{
+  // Базовые настройки панели
+  "layer": "top",          // Расположение слоя (top/bottom)
+  "position": "top",       // Позиция на экране (top/bottom/left/right)
+  "height": 30,            // Высота панели в пикселях
+  "margin-top": 0,         // Отступ сверху
+  "margin-bottom": 0,      // Отступ снизу
+  "margin-left": 0,        // Отступ слева
+  "margin-right": 0,       // Отступ справа
+  "spacing": 4,            // Расстояние между модулями
+
+  // Распределение модулей по зонам панели
+  "modules-left": [
+    "hyprland/workspaces", // Рабочие пространства Hyprland
+    "hyprland/window"      // Окно активного приложения
+  ],
+  "modules-center": [
+    "clock"               // Часы по центру
+  ],
+  "modules-right": [
+    "pulseaudio",         // Управление звуком
+    "pulseaudio#microphone", // Управление микрофоном
+    "network",            // Состояние сети
+    "cpu",                // Загрузка процессора
+    "memory",             // Использование памяти
+    "battery",            // Состояние батареи
+    "tray",               // Системный трей
+    "custom/power"        // Кнопка выключения
+  ],
+
+  // Настройка модуля рабочих пространств
+  "hyprland/workspaces": {
+    "format": "{icon}",                   // Формат отображения (только иконки)
+    "on-click": "activate",               // Действие по клику - переключение
+    "on-scroll-up": "hyprctl dispatch workspace e+1",  // Прокрутка вверх - след. workspace
+    "on-scroll-down": "hyprctl dispatch workspace e-1", // Прокрутка вниз - пред. workspace
+    "active-only": false,                 // Показывать только активные пространства
+    "format-icons": {                     // Кастомные иконки для workspace
+      "1": "",  // Иконка для workspace 1
+      "2": "",  // Иконка для workspace 2
+      "3": "",  // Иконка для workspace 3
+      "4": "",  // Иконка для workspace 4
+      "5": "",  // Иконка для workspace 5
+      "urgent": "",  // Иконка для срочных уведомлений
+      "default": ""  // Иконка по умолчанию
+    },
+    "persistent_workspaces": {  // Фиксированные рабочие пространства
+      "1": {}, "2": {}, "3": {}, "4": {}, "5": {}
+    }
+  },
+
+  // Настройка модуля активного окна
+  "hyprland/window": {
+    "max-length": 50,      // Максимальная длина текста
+    "separator": false,    // Отключение разделителя
+    "rewrite": {           // Переопределение текста
+      "": "No active window"  // Текст при отсутствии активного окна
+    },
+    "format": "{}",        // Формат вывода
+    "tooltip": false       // Отключение подсказки
+  },
+
+  // Настройка модуля часов
+  "clock": {
+    "format": "{:%H:%M | %d.%m.%Y}",  // Формат времени
+    "timezone": "Europe/Moscow",      // Часовой пояс
+    "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",  // Формат подсказки
+    "interval": 60,                   // Интервал обновления (секунды)
+    "format-alt": "{:%Y-%m-%d}"       // Альтернативный формат
+  },
+
+  // Настройка модуля звука
+  "pulseaudio": {
+    "format": "{icon} {volume}%",     // Формат: иконка + уровень громкости
+    "format-muted": " 0%",          // Формат при отключенном звуке
+    "format-icons": {                // Иконки для разных уровней громкости
+      "default": ["", "", ""]
+    },
+    "scroll-step": 5,                // Шаг изменения громкости при прокрутке
+    "on-click": "pactl set-sink-mute @DEFAULT_SINK@ toggle",  // Действие по клику
+    "on-click-right": "pavucontrol",  // Действие по правому клику
+    "tooltip": false                 // Отключение подсказки
+  },
+
+  // Настройка модуля микрофона
+  "pulseaudio#microphone": {
+    "format": "{format_source}",      // Формат вывода
+    "format-source": " {volume}%",  // Формат при активном микрофоне
+    "format-source-muted": " 0%",   // Формат при отключенном микрофоне
+    "on-click": "pactl set-source-mute @DEFAULT_SOURCE@ toggle",  // Действие по клику
+    "tooltip": false                 // Отключение подсказки
+  },
+
+  // Настройка модуля сети
+  "network": {
+    "format-wifi": " {essid} ({signalStrength}%)",  // Формат для WiFi
+    "format-ethernet": " {ipaddr}",               // Формат для Ethernet
+    "format-disconnected": " No internet",        // Формат при отключении
+    "tooltip-format": "{ifname}: {ipaddr}/{cidr}", // Формат подсказки
+    "on-click": "nm-connection-editor",           // Действие по клику
+    "interval": 5                                 // Интервал обновления
+  },
+
+  // Настройка модуля процессора
+  "cpu": {
+    "format": " {usage}%",         // Формат вывода
+    "interval": 2,                 // Интервал обновления
+    "states": {                    // Состояния для цветового выделения
+      "warning": 70,               // Предупреждение при 70% загрузке
+      "critical": 90               // Критическое при 90% загрузке
+    },
+    "tooltip": false              // Отключение подсказки
+  },
+
+  // Настройка модуля памяти
+  "memory": {
+    "format": " {used:0.1f}G/{total:0.1f}G",  // Формат вывода
+    "interval": 5,                             // Интервал обновления
+    "states": {                                // Состояния для цветового выделения
+      "warning": 70,                           // Предупреждение при 70% использовании
+      "critical": 90                           // Критическое при 90% использовании
+    }
+  },
+
+  // Настройка модуля батареи
+  "battery": {
+    "states": {                      // Состояния батареи
+      "good": 95,                    // Хороший уровень
+      "warning": 30,                 // Уровень предупреждения
+      "critical": 15                 // Критический уровень
+    },
+    "format": "{icon} {capacity}%",  // Формат вывода
+    "format-charging": " {capacity}%",  // Формат при зарядке
+    "format-plugged": " {capacity}%",   // Формат при подключении
+    "format-alt": "{time} {icon}",    // Альтернативный формат
+    "format-icons": ["", "", "", "", ""],  // Иконки для разных уровней
+    "interval": 10                   // Интервал обновления
+  },
+
+  // Настройка кнопки выключения
+  "custom/power": {
+    "format": "",                  // Иконка выключения
+    "on-click": "wlogout --protocol layer-shell",  // Действие по клику
+    "tooltip": false                // Отключение подсказки
+  },
+
+  // Настройка системного трея
+  "tray": {
+    "spacing": 8,                   // Расстояние между иконками
+    "icon-size": 16,                // Размер иконок
+    "reverse-direction": false      // Обратное направление
+  },
+
+  // Настройки для всех модулей
+  "modules": {
+    "enable": true,                // Включение всех модулей
+    "update-interval": 1           // Базовый интервал обновления
+  }
+}

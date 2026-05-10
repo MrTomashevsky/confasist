@@ -1,0 +1,32 @@
+* {
+    border: none;
+    border-radius: 0;
+    font-family: "DejaVu Sans Mono", "Font Awesome 5 Free";
+    font-size: 14px;
+    min-height: 0;
+}
+
+window#waybar {
+    background: #2e3440;
+    color: #d8dee9;
+}
+
+#workspaces button {
+    padding: 0 10px;
+    background: transparent;
+    color: #d8dee9;
+    border-top: 2px solid transparent;
+}
+
+#workspaces button.focused {
+    background: #434c5e;
+    border-top: 2px solid #88c0d0;
+}
+
+#battery.warning {
+    color: #ebcb8b;
+}
+
+#battery.critical {
+    color: #bf616a;
+}

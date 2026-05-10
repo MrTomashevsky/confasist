@@ -1,0 +1,404 @@
+
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export CONFASIST_LIB="$APP_DIR/.bash_lib"
+
+source "$CONFASIST_LIB/distro_detect.bash"
+source "$CONFASIST_LIB/hardware_detect.bash"
+
+CURRENT_DISTRO="$(get_distro)"
+CURRENT_ARCH="$(get_architecture)"
+
+PROGRAM_NAME="Linux Configure Assistant"
+
+########################################
+# Utilities
+########################################
+
+require_whiptail() {
+    if ! command -v whiptail >/dev/null 2>&1; then
+        echo "whiptail is required"
+        exit 1
+    fi
+}
+
+is_supported() {
+    local supported="$1"
+
+    [[ -z "$supported" ]] && return 0
+
+    for distro in $supported; do
+        if [[ "$distro" == "$CURRENT_DISTRO" ]]; then
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+find_script_by_name() {
+    local name="$1"
+
+    find "$APP_DIR" \
+        -type f \
+        -name "${name}.bash" \
+        ! -path "*/.bash_lib/*" \
+        | head -n 1
+}
+
+########################################
+# Metadata parser
+########################################
+
+parse_script_metadata() {
+    local script="$1"
+
+    DESCRIPTION=""
+    SUPPORTED_DISTROS=""
+
+    declare -gA FUNCTION_DESCRIPTIONS=()
+    declare -gA FUNCTION_ARGS=()
+    declare -gA ARG_DESCRIPTIONS=()
+
+    while IFS= read -r line; do
+
+        if [[ "$line" =~ ^#\ @description:\ (.*)$ ]]; then
+            DESCRIPTION="${BASH_REMATCH[1]}"
+        fi
+
+        if [[ "$line" =~ ^#\ @supported_distros:\ (.*)$ ]]; then
+            SUPPORTED_DISTROS="${BASH_REMATCH[1]}"
+        fi
+
+        if [[ "$line" =~ ^#\ @function:\ ([a-zA-Z0-9_]+)\ \"(.*)\"$ ]]; then
+            local fname="${BASH_REMATCH[1]}"
+            local fdesc="${BASH_REMATCH[2]}"
+            FUNCTION_DESCRIPTIONS["$fname"]="$fdesc"
+        fi
+
+        if [[ "$line" =~ ^#\ @arg:([a-zA-Z0-9_]+)\ ([a-zA-Z0-9_]+)\ \"(.*)\"$ ]]; then
+            local func="${BASH_REMATCH[1]}"
+            local arg="${BASH_REMATCH[2]}"
+            local desc="${BASH_REMATCH[3]}"
+
+            FUNCTION_ARGS["$func"]+="$arg "
+            ARG_DESCRIPTIONS["${func}_${arg}"]="$desc"
+        fi
+
+    done < "$script"
+}
+
+########################################
+# Execute function
+########################################
+
+execute_function() {
+    local script="$1"
+    local function_name="$2"
+
+    local args=()
+
+    local arg_list="${FUNCTION_ARGS[$function_name]:-}"
+
+    for arg in $arg_list; do
+        local desc="${ARG_DESCRIPTIONS[${function_name}_${arg}]}"
+
+        local value
+        value=$(whiptail \
+            --title "$function_name" \
+            --inputbox "$arg\n$desc" \
+            12 70 \
+            3>&1 1>&2 2>&3) || return
+
+        args+=("$value")
+    done
+
+    clear
+
+    echo "========================================"
+    echo "Running: $function_name"
+    echo "Script : $script"
+    echo "========================================"
+    echo
+
+    /bin/bash "$script" "$function_name" "${args[@]}"
+
+    echo
+    echo "Press ENTER to continue..."
+    read -r
+}
+
+########################################
+# Function menu
+########################################
+
+show_function_menu() {
+    local script="$1"
+
+    parse_script_metadata "$script"
+
+    local options=()
+
+    for func in "${!FUNCTION_DESCRIPTIONS[@]}"; do
+        options+=("$func" "${FUNCTION_DESCRIPTIONS[$func]}")
+    done
+
+    while true; do
+
+        local selected
+
+        selected=$(whiptail \
+            --backtitle "$PROGRAM_NAME" \
+            --title "$(basename "$script")" \
+            --menu "$DESCRIPTION" \
+            22 80 12 \
+            "${options[@]}" \
+            3>&1 1>&2 2>&3)
+
+        local exit_code=$?
+
+        [[ $exit_code -ne 0 ]] && break
+
+        if ! is_supported "$SUPPORTED_DISTROS"; then
+            whiptail \
+                --title "Unsupported" \
+                --yesno "This script supports:\n\n$SUPPORTED_DISTROS\n\nContinue anyway?" \
+                14 60
+
+            [[ $? -ne 0 ]] && continue
+        fi
+
+        execute_function "$script" "$selected"
+    done
+}
+
+########################################
+# Directory menu
+########################################
+
+show_directory_menu() {
+    local current_dir="$1"
+
+    while true; do
+
+        local options=()
+
+        declare -A PATH_MAP=()
+
+        #
+        # Directories
+        #
+        while IFS= read -r dir; do
+
+            local name
+            name="$(basename "$dir")"
+
+            options+=("$name" "")
+
+            PATH_MAP["$name"]="$dir"
+
+        done < <(
+            find "$current_dir" \
+                -mindepth 1 \
+                -maxdepth 1 \
+                -type d \
+                ! -name ".*" \
+                | sort
+        )
+
+        #
+        # Scripts
+        #
+        while IFS= read -r file; do
+
+            parse_script_metadata "$file"
+
+            local name
+            name="$(basename "$file" .bash)"
+
+            local label="$DESCRIPTION"
+
+            if ! is_supported "$SUPPORTED_DISTROS"; then
+                label="[UNSUPPORTED: $SUPPORTED_DISTROS] $label"
+            fi
+
+            options+=("$name" "$label")
+
+            PATH_MAP["$name"]="$file"
+
+        done < <(
+            find "$current_dir" \
+                -mindepth 1 \
+                -maxdepth 1 \
+                -type f \
+                -name "*.bash" \
+                | sort
+        )
+
+        local choice
+
+        choice=$(whiptail \
+            --backtitle "$PROGRAM_NAME" \
+            --title "Distro: $CURRENT_DISTRO | Arch: $CURRENT_ARCH" \
+            --menu "Select item" \
+            25 90 15 \
+            "${options[@]}" \
+            3>&1 1>&2 2>&3)
+
+        local exit_code=$?
+
+        [[ $exit_code -ne 0 ]] && return
+
+        local selected_path="${PATH_MAP[$choice]}"
+
+        if [[ -d "$selected_path" ]]; then
+            show_directory_menu "$selected_path"
+        fi
+
+        if [[ -f "$selected_path" ]]; then
+            show_function_menu "$selected_path"
+        fi
+
+    done
+}
+
+########################################
+# Script generator
+########################################
+
+create_new_script() {
+    local name="$1"
+    local description="$2"
+    local distros="$3"
+
+    local target="$(pwd)/${name}.bash"
+
+    cat > "$target" <<EOF
+#!/usr/bin/env bash
+
+# @description: ${description:-No description}
+# @supported_distros: ${distros:-all}
+# @function: main "Default function"
+
+# [ -n "$CONFASIST_LIB" ] && source "$CONFASIST_LIB/pkg_manager.bash" # example include scripts from .bash_lib
+# SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)" # get this dir
+
+
+main() {
+    echo "Hello from ${name}"
+}
+
+if [[ "\$1" == "main" ]]; then
+    main "\${@:2}"
+fi
+EOF
+
+    chmod +x "$target"
+
+    echo "Created: $target"
+}
+
+########################################
+# CLI mode
+########################################
+
+run_cli() {
+    local script_name="$1"
+    local function_name="${2:-main}"
+
+    shift || true
+    shift || true
+
+    local script
+    script="$(find_script_by_name "$script_name")"
+
+    if [[ -z "$script" ]]; then
+        echo "Script not found: $script_name"
+        exit 1
+    fi
+
+    /bin/bash "$script" "$function_name" "$@"
+}
+
+########################################
+# Arguments
+########################################
+
+require_whiptail
+#
+# export NEWT_COLORS='
+# root=,green
+# '
+
+export NEWT_COLORS='
+    root=black,green
+    roottext=black,green
+
+
+    window=black,lightgray
+    title=black,lightgray
+    border=black,lightgray
+
+
+    textbox=black,lightgray
+
+
+
+    listbox=black,lightgray
+    actsellistbox=black,green
+    actlistbox=black,white
+
+    compactbutton=black,lightgray
+
+    button=white,green,
+    checkbox=black,green
+    actcheckbox=green,black
+'
+
+#
+# label=,green
+# border=white,red
+# textbox=white,red
+# button=black,white
+
+if [[ "${1:-}" == "-r" ]]; then
+    shift
+    run_cli "$@"
+    exit 0
+fi
+
+if [[ "${1:-}" == "--new" ]]; then
+    shift
+
+    SCRIPT_NAME="$1"
+    shift
+
+    DESCRIPTION=""
+    DISTROS=""
+
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --desc)
+                DESCRIPTION="$2"
+                shift 2
+                ;;
+
+            --distros)
+                DISTROS="$2"
+                shift 2
+                ;;
+
+            *)
+                shift
+                ;;
+        esac
+    done
+
+    create_new_script "$SCRIPT_NAME" "$DESCRIPTION" "$DISTROS"
+    exit 0
+fi
+
+show_directory_menu "$APP_DIR"
