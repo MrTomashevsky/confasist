@@ -8,7 +8,6 @@
 [ -n "$CONFASIST_LIB" ] && source "$CONFASIST_LIB/pkg_manager.bash"
 
 install() {
-
     install_package raspi-config
 }
 

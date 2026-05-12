@@ -13,7 +13,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 install() {
 
-    install_package wayvnc
+    if ! install_package wayvnc; then
+	build_from_source
+    fi
+    setup_config
+    add_render_groups
 }
 
 build_from_source() {

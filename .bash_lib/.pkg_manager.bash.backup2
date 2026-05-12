@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
-# @description: Unified package manager functions with manual spinner and real error output
+# @description: Unified package manager functions with manual spinner inside each function
 # @supported_distros: ubuntu debian arch fedora raspbian
-# @function: install_package "Install a package with spinner"
-# @function: remove_package "Remove a package with spinner"
+# @function: install_package "Install a package with manual spinner"
+# @function: remove_package "Remove a package with manual spinner"
 # @function: package_exists "Check if package is installed"
-# @function: update_system "Update system packages with spinner"
+# @function: update_system "Update system packages with manual spinner"
 
 set -euo pipefail
 
@@ -63,18 +63,17 @@ install_package() {
             ;;
     esac
 
-    local tmpfile
-    tmpfile=$(mktemp)
-    "${cmd[@]}" >"$tmpfile" 2>&1 &
+    # Run install in background
+    "${cmd[@]}" >/dev/null 2>&1 &
     local pid=$!
 
+    # Manual spinner
     local spin='-\|/'
     local i=0
     while kill -0 "$pid" 2>/dev/null; do
         printf "\r[%s] installing %s..." "${spin:i++%${#spin}:1}" "$pkg"
         sleep 0.1
     done
-
     wait "$pid"
     local status=$?
 
@@ -82,9 +81,7 @@ install_package() {
         printf "\r[\033[32m!\033[0m] installation was successful %s\n" "$pkg"
     else
         printf "\r[\033[31mx\033[0m] error installing %s\n" "$pkg"
-        cat "$tmpfile"
     fi
-    rm -f "$tmpfile"
 }
 
 remove_package() {
@@ -107,37 +104,28 @@ remove_package() {
             ;;
     esac
 
-    local tmpfile
-    tmpfile=$(mktemp)
-    "${cmd[@]}" >"$tmpfile" 2>&1 &
+    "${cmd[@]}" >/dev/null 2>&1 &
     local pid=$!
-
     local spin='-\|/'
     local i=0
     while kill -0 "$pid" 2>/dev/null; do
         printf "\r[%s] removing %s..." "${spin:i++%${#spin}:1}" "$pkg"
         sleep 0.1
     done
-
     wait "$pid"
     local status=$?
-
     if [[ $status -eq 0 ]]; then
         printf "\r[\033[32m!\033[0m] removal successful %s\n" "$pkg"
     else
         printf "\r[\033[31mx\033[0m] error removing %s\n" "$pkg"
-        cat "$tmpfile"
     fi
-    rm -f "$tmpfile"
 }
 
 update_system() {
     case "$PKG_MANAGER" in
         apt)
-            local tmpfile
-            tmpfile=$(mktemp)
-            # update
-            sudo apt update -y >"$tmpfile" 2>&1 &
+            # apt update
+            sudo apt update -y >/dev/null 2>&1 &
             local pid=$!
             local spin='-\|/'
             local i=0
@@ -151,11 +139,10 @@ update_system() {
                 printf "\r[\033[32m!\033[0m] package list updated\n"
             else
                 printf "\r[\033[31mx\033[0m] error updating package list\n"
-                cat "$tmpfile"
             fi
 
-            # upgrade
-            sudo apt upgrade -y >"$tmpfile" 2>&1 &
+            # apt upgrade
+            sudo apt upgrade -y >/dev/null 2>&1 &
             pid=$!
             i=0
             while kill -0 "$pid" 2>/dev/null; do
@@ -168,16 +155,13 @@ update_system() {
                 printf "\r[\033[32m!\033[0m] packages upgraded\n"
             else
                 printf "\r[\033[31mx\033[0m] error upgrading packages\n"
-                cat "$tmpfile"
             fi
-            rm -f "$tmpfile"
             ;;
         pacman)
-            tmpfile=$(mktemp)
-            sudo pacman -Syu --noconfirm >"$tmpfile" 2>&1 &
-            pid=$!
-            spin='-\|/'
-            i=0
+            sudo pacman -Syu --noconfirm >/dev/null 2>&1 &
+            local pid=$!
+            local spin='-\|/'
+            local i=0
             while kill -0 "$pid" 2>/dev/null; do
                 printf "\r[%s] updating system (pacman)..." "${spin:i++%${#spin}:1}"
                 sleep 0.1
@@ -188,16 +172,13 @@ update_system() {
                 printf "\r[\033[32m!\033[0m] system updated\n"
             else
                 printf "\r[\033[31mx\033[0m] error updating system\n"
-                cat "$tmpfile"
             fi
-            rm -f "$tmpfile"
             ;;
         dnf)
-            tmpfile=$(mktemp)
-            sudo dnf upgrade -y >"$tmpfile" 2>&1 &
-            pid=$!
-            spin='-\|/'
-            i=0
+            sudo dnf upgrade -y >/dev/null 2>&1 &
+            local pid=$!
+            local spin='-\|/'
+            local i=0
             while kill -0 "$pid" 2>/dev/null; do
                 printf "\r[%s] updating system (dnf)..." "${spin:i++%${#spin}:1}"
                 sleep 0.1
@@ -208,9 +189,7 @@ update_system() {
                 printf "\r[\033[32m!\033[0m] system updated\n"
             else
                 printf "\r[\033[31mx\033[0m] error updating system\n"
-                cat "$tmpfile"
             fi
-            rm -f "$tmpfile"
             ;;
         *)
             printf "\033[31m[x] Unknown package manager, cannot update system\033[0m\n"
