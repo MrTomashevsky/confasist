@@ -1,8 +1,13 @@
 # -*- conf -*-
 # Alacritty
 
-[colors-dark]
-cursor = 181818 d8d8d8
+[cursor]
+color = 181818 d8d8d8
+# or "cursor = 181818 d8d8d8" anx ctrl+x to colors-dark, if error
+
+[colors]
+# or "[colors-dark]", if error
+
 background= 181818
 foreground= d8d8d8
 

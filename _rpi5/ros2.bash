@@ -11,7 +11,7 @@ source "$SCRIPT_DIR/.scripts/ros2repo.bash"
 install() {
     echo 'Install ROS2 config'
 
-    source .scripts/ros2repo.bash
+    source "$SCRIPT_DIR/.scripts/ros2repo.bash"
 
     ros2jazzy_install
     rosdep_install

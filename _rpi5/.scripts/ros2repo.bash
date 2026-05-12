@@ -1,7 +1,7 @@
 ros2jazzy_install() {
     # Включение репозитория Universe
-    sudo apt install software-properties-common -y
-    sudo add-apt-repository universe
+    sudo apt install -y software-properties-common
+    sudo add-apt-repository universe -y
 
     sudo apt update && sudo apt install curl -y
     export ROS_APT_SOURCE_VERSION=$(curl -s https://api.github.com/repos/ros-infrastructure/ros-apt-source/releases/latest | grep -F "tag_name" | awk -F'"' '{print $4}')
@@ -9,7 +9,7 @@ ros2jazzy_install() {
     sudo dpkg -i /tmp/ros2-apt-source.deb
 
     sudo apt update
-    sudo apt upgrade  # Рекомендуется обновить систему перед установкой
+    sudo apt upgrade -y # Рекомендуется обновить систему перед установкой
     sudo apt install ros-jazzy-desktop -y
 
     if ! grep -qxF 'source /opt/ros/jazzy/setup.bash' ~/.bashrc; then
@@ -26,7 +26,7 @@ ros2jazzy_install() {
 rosdep_install() {
 
     # Установка python3-rosdep и других инструментов
-    sudo apt install python3-rosdep python3-colcon-common-extensions ros-dev-tools
+    sudo apt install python3-rosdep python3-colcon-common-extensions ros-dev-tools -y
     # Инициализация (только один раз)
     sudo rosdep init
 

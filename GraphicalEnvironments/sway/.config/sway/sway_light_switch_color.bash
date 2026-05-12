@@ -7,7 +7,7 @@ sway_light_switch_color() {
 
     # Проверка аргумента
     if [ $# -ne 1 ]; then
-        echo "Использование: $0 {red|green|amber|blue|purple|slate}"
+        echo "Using: $0 {red|green|amber|blue|purple|slate}"
         exit 1
     fi
 
@@ -15,7 +15,7 @@ sway_light_switch_color() {
     VALID_COLORS="red green amber blue purple slate"
 
     if [[ ! " $VALID_COLORS " =~ " $COLOR " ]]; then
-        echo "Ошибка: цвет '$COLOR' недопустим. Допустимые: $VALID_COLORS"
+        echo "Error: color '$COLOR' no required. Available: $VALID_COLORS"
         exit 1
     fi
 
@@ -47,7 +47,7 @@ sway_light_switch_color() {
     # # Перезагрузка Waybar (если запущен)
     # killall -SIGUSR1 waybar 2>/dev/null || true
 
-    echo "Тема '$COLOR' успешно применена. PS1 будет обновлён при следующем запуске bash."
+    echo "Theme '$COLOR' enabled successfully. PS1 will be uldate in next running bash."
 
 }
 

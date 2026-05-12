@@ -1,0 +1,6 @@
+set linenumbers
+#set mouse
+
+include "/usr/share/nano/*.nanorc"
+#include "~/os_files/ino.nanorc"
+#include "~/os_files/python.nanorc"

@@ -25,7 +25,6 @@ EOF
     sudo chmod 600 /etc/netplan/50-usb-gadget.yaml
 
     install_package systemd-resolved || true
-
     sudo systemctl enable --now systemd-networkd
     sudo systemctl enable --now systemd-resolved
 

@@ -9,7 +9,7 @@
 
 [ -n "$CONFASIST_LIB" ] && source "$CONFASIST_LIB/pkg_manager.bash"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/.config/sway/sway_light_switch_color.bash"
+#source "$SCRIPT_DIR/.config/sway/sway_light_switch_color.bash"
 
 install() {
     echo "Installing sway"
@@ -18,8 +18,11 @@ install() {
     install_package waybar
     install_package foot-themes
 
-    cp -r "$SCRIPT_DIR/.config/." "$HOME/.config/"
-    sway_light_switch_color red
+    cp -r "$SCRIPT_DIR/.config/sway" "$HOME/.config/"
+    cp -r "$SCRIPT_DIR/.config/waybar" "$HOME/.config/"
+    source "$HOME/.config/sway/sway_light_switch_color.bash"
+
+    sway_light_switch_color green
     echo "Sway installed"
 }
 
@@ -33,15 +36,16 @@ remove() {
 switch_color() {
     local color="$1"
     echo "Switching theme to: $color"
+    source "$HOME/.config/sway/sway_light_switch_color.bash"
     sway_light_switch_color "$color"
 }
 
 case "$1" in
     install)
-        install "${@:2}"
+        install
         ;;
     remove)
-        remove "${@:2}"
+        remove
         ;;
     switch_color)
         switch_color "${@:2}"
