@@ -1,1 +1,0 @@
-1. update ros2repo.bash: apt install replace to variant installation from defpkg.bash

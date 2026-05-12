@@ -131,6 +131,7 @@ hostname -I
 ```
 
 Используем приложение TigerVNC или любое другое для подключения, все будет работать, если вы на Ubuntu 24 или младше или на Raspberry Pi OS.
+Можно еще использовать Remina, но тогда чуть-чуть другие настройки для конфига wayvnc.
 
 # 4. **wayvnc для работы со sway**
 
@@ -177,6 +178,16 @@ nano ~/.config/wayvnc/config
 address=0.0.0.0
 port=5900
 enable_auth=true
+username=user
+password=твой_пароль
+```
+
+Если юзаем Remmina:
+
+```ini
+address=127.0.0.1
+port=5900
+enable_auth=false
 username=user
 password=твой_пароль
 ```
