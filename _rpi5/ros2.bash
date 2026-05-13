@@ -36,9 +36,9 @@ install() {
 
     #rosdep_install
     # Установка python3-rosdep и других инструментов
-    update_system python3-rosdep
-    update_system python3-colcon-common-extensions
-    update_system ros-dev-tools
+    install_package python3-rosdep
+    install_package python3-colcon-common-extensions
+    install_package ros-dev-tools
     # Инициализация (только один раз)
     sudo rosdep init
 

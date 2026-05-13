@@ -10,7 +10,7 @@
 set $mod Mod4
 # Your preferred terminal emulator
 
-set $term foot -c .config/sway/alacritty 
+set $term foot -c ~/.config/sway/alacritty 
 # it's /usr/share/foot/themes/alacritty
 
 # Your preferred application launcher
