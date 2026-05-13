@@ -56,6 +56,14 @@ output "HDMI-A-2" {
 	resolution 1920x1080@60Hz
 }
 
+output "HEADLESS-1" {
+	scale 2
+# 1.75
+#	position -1920,0
+#	resolution 1280x1024@60Hz
+	resolution 1920x1080@60Hz
+}
+
 ### Input configuration
 #
 # Keyboard layout configuration with Caps Lock for language switching
