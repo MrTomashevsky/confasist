@@ -12,7 +12,15 @@ source "$CONFASIST_LIB/hardware_detect.bash"
 CURRENT_DISTRO="$(get_distro)"
 CURRENT_ARCH="$(get_architecture)"
 
-PROGRAM_NAME="Linux Configure Assistant"
+
+if git describe --tags &> /dev/null; then 
+    PROGRAM_VERSION_TAG=$(git describe --tags)
+else
+    PROGRAM_VERSION_TAG=
+fi
+
+
+PROGRAM_NAME="Linux Configure Assistant ${PROGRAM_VERSION_TAG}"
 
 ########################################
 # Utilities
