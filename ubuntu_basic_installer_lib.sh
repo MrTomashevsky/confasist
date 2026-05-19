@@ -41,3 +41,24 @@ _confasist_wayvnc() {
 	cd "$pwd_val"
 
 }
+
+_confasist_camera() {
+	pwd_val=$(pwd)
+	CONFASIST_LIB="${pwd_val}/.bash_lib"
+
+	cd _rpi5
+
+	commands=(
+		install_dependencies
+		build_libcamera
+		build_rpicam
+		configure_boot
+		setup_ld_library_path
+	)
+	for i in ${commands[*]}; do
+		CONFASIST_LIB=${CONFASIST_LIB} ./camera_ov5647_ubuntu.bash "$i"
+	done
+	echo "Recomended reboot"
+	cd "$pwd_val"
+
+}
