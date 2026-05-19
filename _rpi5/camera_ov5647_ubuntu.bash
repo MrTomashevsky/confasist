@@ -113,7 +113,7 @@ build_libcamera() {
     git fetch --tags
 
     if [[ "$USE_LAST" == "false" ]]; then
-        git checkout v0.7.1
+        git checkout v0.7.1+rpt20260429
     else
         git checkout main || git checkout master
         git pull
