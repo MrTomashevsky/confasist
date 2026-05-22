@@ -9,7 +9,7 @@
 install() {
     packages=(
         sl pciutils tree tmux kate tig mpv shellcheck openssh-server htop
-        base-devel git nano less bat nnn lf python3-pip python3
+        base-devel git nano less bat nnn lf python3-pip python3 lm-sensors python-is-python3
         build-essential "linux-headers-$(uname -r)"
     )
 
