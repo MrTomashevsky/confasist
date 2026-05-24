@@ -36,7 +36,7 @@ disable_console() {
 }
 
 allow_user_access() {
-
+    # 1. Управление правами на устройство
     if [[ -e /dev/ttyAMA0 ]]; then
         sudo chmod 666 /dev/ttyAMA0
         echo "Permissions updated for /dev/ttyAMA0"
@@ -44,7 +44,26 @@ allow_user_access() {
         echo "/dev/ttyAMA0 not found."
         echo "Reboot may be required."
     fi
+
+    # 2. Автоматизация для ~/.bashrc
+    local bashrc="$HOME/.bashrc"
+    local search_term="allow_user_access"
+
+    if [[ -f "$bashrc" ]]; then
+        # Если строка закомментирована, убираем '#' и пробелы перед ней
+        if grep -qE "^[[:space:]]*#[[:space:]]*${search_term}" "$bashrc"; then
+            sed -i -E "s/^[[:space:]]*#[[:space:]]*(${search_term})/\1/" "$bashrc"
+            echo "Uncommented '$search_term' in ~/.bashrc"
+        # Если строки нет вообще, добавляем её в самый конец файла
+        elif ! grep -qF "$search_term" "$bashrc"; then
+            echo -e "\n# Автоматический запуск функции доступа к ttyAMA0\n$search_term" >> "$bashrc"
+            echo "Added '$search_term' to ~/.bashrc"
+        else
+            echo "'$search_term' is already active in ~/.bashrc"
+        fi
+    fi
 }
+
 
 status() {
 
