@@ -4,8 +4,11 @@
 # @supported_distros: ubuntu debian raspbian
 # @function: enable "Enable UART on GPIO14/GPIO15"
 # @function: disable_console "Disable serial console and free ttyAMA0"
-# @function: allow_user_access "Allow non-root access to ttyAMA0"
+# @function: set_allow_user_access "Allow non-root access to ttyAMA0"
+# @function: unset_allow_user_access "Cansel non-root access to ttyAMA0"
 # @function: status "Show UART status"
+
+[ -n "$CONFASIST_LIB" ] && source "$CONFASIST_LIB/udev_manager.bash"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -35,34 +38,30 @@ disable_console() {
     echo "ttyAMA0 should become available after reboot."
 }
 
-allow_user_access() {
+set_allow_user_access() {
     # 1. Управление правами на устройство
     if [[ -e /dev/ttyAMA0 ]]; then
         sudo chmod 666 /dev/ttyAMA0
         echo "Permissions updated for /dev/ttyAMA0"
+        udev_manager set "ttyAMA0" 666
+        echo "Set udev rule for /dev/ttyAMA0"
     else
         echo "/dev/ttyAMA0 not found."
         echo "Reboot may be required."
     fi
 
-    # 2. Автоматизация для ~/.bashrc
-    local bashrc="$HOME/.bashrc"
-    local search_term="allow_user_access"
+}
 
-    if [[ -f "$bashrc" ]]; then
-        # Если строка закомментирована, убираем '#' и пробелы перед ней
-        if grep -qE "^[[:space:]]*#[[:space:]]*${search_term}" "$bashrc"; then
-            sed -i -E "s/^[[:space:]]*#[[:space:]]*(${search_term})/\1/" "$bashrc"
-            echo "Uncommented '$search_term' in ~/.bashrc"
-        # Если строки нет вообще, добавляем её в самый конец файла
-        elif ! grep -qF "$search_term" "$bashrc"; then
-            echo -e "\n# Автоматический запуск функции доступа к ttyAMA0\n$search_term" >> "$bashrc"
-            echo "Added '$search_term' to ~/.bashrc"
-        else
-            echo "'$search_term' is already active in ~/.bashrc"
-        fi
+unset_allow_user_access() {
+    if [[ -e /dev/ttyAMA0 ]]; then
+        udev_manager remove "ttyAMA0"
+        echo "Remove udev rule for /dev/ttyAMA0"
+    else
+        echo "/dev/ttyAMA0 not found."
+        echo "Reboot may be required."
     fi
 }
+
 
 
 status() {
@@ -92,8 +91,12 @@ case "$1" in
         disable_console
         ;;
 
-    allow_user_access)
-        allow_user_access
+    set_allow_user_access)
+        set_allow_user_access
+        ;;
+
+    unset_allow_user_access)
+        unset_allow_user_access
         ;;
 
     status)
@@ -104,7 +107,8 @@ case "$1" in
         echo "Available functions:"
         echo "  enable"
         echo "  disable_console"
-        echo "  allow_user_access"
+        echo "  set_allow_user_access"
+        echo "  unset_allow_user_access"
         echo "  status"
         ;;
 
