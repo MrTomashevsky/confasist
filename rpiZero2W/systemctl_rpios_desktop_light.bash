@@ -13,40 +13,64 @@ STATE_FILE="/etc/minimal-mode.state"
 # Список юнитов для отключения (DISABLE, не MASK)
 # Для сокетов, таймеров, путей используем disable, т.к. mask может ломать загрузку
 UNITS_TO_DISABLE=(
-    user@1000.service
-    plymouth-start.service
-    plymouth-read-write.service
-    plymouth-quit.service
-    plymouth-quit-wait.service
-    glamor-test.service
-    rp1-test.service
-    avahi-daemon.service
-    avahi-daemon.socket
-    bluetooth.service
-    cups.service
-    cups-browsed.service
-    cups.socket
-    cups.path
-    ModemManager.service
-    packagekit.service
-    rpi-eeprom-update.service
-    udisks2.service
-    upower.service
-    triggerhappy.service
-    unattended-upgrades.service
-    cloud-config.service
-    cloud-final.service
-    cloud-init-local.service
-    cloud-init-network.service
-    cloud-init-hotplugd.socket
-    apt-daily-upgrade.timer
-    apt-daily.timer
-    dpkg-db-backup.timer
-    e2scrub_all.timer
-    fstrim.timer
-    man-db.timer
-    rpi-zram-writeback.timer
+lightdm.service
+plymouth-quit-wait.service
+plymouth-read-write.service
+plymouth-start.service
+glamor-test.service
+rp1-test.service
+avahi-daemon.service
+avahi-daemon.socket
+bluetooth.service
+bluetooth.target
+cups.service
+cups-browsed.service
+cups.socket
+cups.path
+ModemManager.service
+alsa-restore.service
+packagekit.service
+rpi-eeprom-update.service
+udisks2.service
+upower.service
+triggerhappy.service
+unattended-upgrades.service
+systemd-timesyncd.service
+cloud-config.service
+cloud-final.service
+cloud-init.target
+cloud-init-main.service
+cloud-init-local.service
+cloud-init-network.service
+cloud-init-hotplugd.socket
+apt-daily-upgrade.timer
+apt-daily.timer
+dpkg-db-backup.timer
+e2scrub_all.timer
+fstrim.timer
+logrotate.timer
+man-db.timer
+systemd-tmpfiles-clean.timer
+rpi-zram-writeback.timer
+plymouth-quit.service
+
+pipewire.service
+pipewire-pulse.service
+wireplumber.service
+filter-chain.service
+
+xdg-permission-store.service
+mpris-proxy.service
+
+pipewire.socket
+pipewire-pulse.socket
+wireplumber.socket
+filter-chain.socket
+
+xdg-permission-store.socket
+mpris-proxy.socket
 )
+
 
 unit_exists() {
     systemctl cat "$1" &>/dev/null
@@ -54,20 +78,51 @@ unit_exists() {
 
 minimal_mode() {
 	for unit in "${UNITS_TO_DISABLE[@]}"; do
-		printf "\033[32mDISABLING ${unit}\033[0m\n"
-		sudo systemctl disable "$unit"
-		sudo systemctl stop "$unit"
+		if sudo systemctl disable "$unit"; then
+			if sudo systemctl stop "$unit"; then
+				printf "\033[32mDISABLING ${unit}\033[0m\n"
+			else
+				printf "\033[31merror ${unit}\033[0m\n"
+			fi
+		elif systemctl --user disable "$unit";  then
+			if systemctl --user stop "$unit"; then
+				printf "\033[32mDISABLING USER ${unit}\033[0m\n"
+			else
+				printf "\033[31merror ${unit}\033[0m\n"
+			fi
+		else
+			printf "\033[31merror ${unit}\033[0m\n"
+
+		fi
+
 	done
+	systemctl --user mask --now pipewire.service pipewire.socket pipewire-pulse.service pipewire-pulse.socket wireplumber.service
+	sudo touch /etc/cloud/cloud-init.disabled
 
 }
 
 restore_full_mode() {
-	for unit in "${UNITS_TO_DISABLE[@]}"; do
-		printf "\033[33mENABLING ${unit}\033[0m\n"
+	systemctl --user unmask --now pipewire.service pipewire.socket pipewire-pulse.service pipewire-pulse.socket wireplumber.service
 
-		sudo systemctl enable "$unit"
-		sudo systemctl start "$unit"
+	for unit in "${UNITS_TO_DISABLE[@]}"; do
+		if sudo systemctl enable "$unit"; then
+			if sudo systemctl start "$unit"; then
+				printf "\033[32mENABLING ${unit}\033[0m\n"
+			else
+				printf "\033[31merror ${unit}\033[0m\n"
+			fi
+		elif systemctl --user enable "$unit"; then
+			if systemctl --user start "$unit"; then
+				printf "\033[32mENABLING USER${unit}\033[0m\n"
+			else
+				printf "\033[31merror ${unit}\033[0m\n"
+			fi
+		else
+			printf "\033[31merror ${unit}\033[0m\n"
+		fi
+
 	done
+	sudo rm /etc/cloud/cloud-init.disabled
 
 }
 

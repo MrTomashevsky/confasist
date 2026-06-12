@@ -123,7 +123,7 @@ fi
 
 alias cls="clear"
 
-#PS1='\033[32m+[\w]\n\033[32m+[\u#\h]: \$ \033[0m'
+PS1='\033[32m+[\w]\n\033[32m+[\u#\h]: \$ \033[0m'
 [ -f "$HOME/.bashrc_PS1_color" ] && source "$HOME/.bashrc_PS1_color"
 
 alias ls='ls --color=auto'
